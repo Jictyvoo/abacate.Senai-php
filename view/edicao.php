@@ -1,95 +1,28 @@
-<!DOCTYPE html>
-<html lang = "pt-br">
-<head>
-	<META charset = "utf-8"/>
-	<title>Edição Comodo</title>
+<?php
+	if((!isset($_SESSION['InserindoComodo'])) || ($_SESSION['paginaAnterior'] != "edicao.php")){
+		$copiaComodo = $_SESSION['VetorLista'][1] -> get($_SESSION['editando']);
+		$_SESSION['InserindoComodo'] = new EspecificacoesComodo();
+		$_SESSION['InserindoComodo'] -> setTomadasTipo(new VetorLista());
+		$_SESSION['InserindoComodo'] -> setQuantidadeTomadasTipo(new VetorLista());
 
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="../view/css/fonts.css">
-	<link rel="stylesheet" type="text/css" href="../view/css/definitions.css">
+		$_SESSION['InserindoComodo'] -> setIdComodo($copiaComodo -> getIdComodo());
+		$_SESSION['InserindoComodo'] -> setArea($copiaComodo -> getArea());
+		$_SESSION['InserindoComodo'] -> setPerimetro($copiaComodo -> getPerimetro());
 
-	<link rel="icon" href="imagens/favicon.ico">
-</head>
-<body bgcolor="#E8F7F6">
-	
-	<nav class="navbar navbar-default navbar-fixed-top">
-		<div class = "navbar-header">
-			<a class = "navbar-brand" href = "#">Sistema Gerenciamento Voltagem Residencia</a>
-		</div>
-
-		<div>
-			<ul class = "nav navbar-nav">
-				<li><a href = "inserirComodos.php">Inserir Comodo</a></li>
-				<li class = "active"><a href = "comodosInseridos.php">Comodos Inseridos</a></li>
-				<li><a href = "resultPage.php">Resultado Final</a></li>
-				
-			</ul>
-		</div>
-	</nav><br/><br/><br/>
-
-	<?php
-		include_once ("../model/EspecificacoesComodo.php");
-		include_once ("../util/VetorLista.php");
-		session_start();
-
-		if($_SESSION['paginaOrigem'] != "../controller/controlador.php"){
-			for($posicaoEdicao = 0; (!isset($_POST['editaDeleta_'.$posicaoEdicao])) && $posicaoEdicao < $_SESSION['VetorLista'] -> size(); $posicaoEdicao += 1);
-			if($posicaoEdicao == $_SESSION['VetorLista'] -> size()){
-				$_SESSION['mensagemFalha'] = "Item não encontrado!";
-				header('Location: ../view/comodosInseridos.php');
-			}
-			$editarDeletar = $_POST['editaDeleta_'.$posicaoEdicao];
-
-			if($editarDeletar == "Deletar"){
-				$_SESSION['VetorLista'] -> removeIndex($posicaoEdicao);
-				$_SESSION['mensagemSucesso'] = "Cômodo Removido Com Sucesso";
-				header('Location: ../view/comodosInseridos.php');
-			}
-			$_SESSION['editando'] = $posicaoEdicao;
+		for($position = 0; $position < $copiaComodo -> getTomadasTipo() -> size(); $position += 1){
+			$_SESSION['InserindoComodo'] -> getTomadasTipo() -> add($copiaComodo -> getTomadasTipo() -> get($position));
+			$_SESSION['InserindoComodo'] -> getQuantidadeTomadasTipo() -> add($copiaComodo -> getQuantidadeTomadasTipo() -> get($position));
 		}
-		else{
-			if(!isset($_SESSION['editando']) || !isset($_SESSION['adicionarTomada'])){
-				$_SESSION['mensagemFalha'] = "Item não encontrado!";
-				header('Location: ../view/comodosInseridos.php');
-			}
-			$posicaoEdicao = $_SESSION['editando'];
-			$editarDeletar = "Editar";
-		}
+	}
+	$_SESSION['paginaAnterior'] = "edicao.php";
+	$quantidadeTomadas = $_SESSION['InserindoComodo'] -> getTomadasTipo() -> size();
 
-		if($editarDeletar == "Editar"){
-			if($_SESSION['paginaOrigem'] != "../controller/controlador.php"){
-				$_SESSION['areaPrevia'] = $_SESSION['VetorLista'] -> get($posicaoEdicao) -> getArea();
-				$_SESSION['perimetroPrevio'] = $_SESSION['VetorLista'] -> get($posicaoEdicao) -> getPerimetro();
-				$_SESSION['previoIdComodo'] = $_SESSION['VetorLista'] -> get($posicaoEdicao) -> getIdComodo();
-
-				$insereArray = $_SESSION['VetorLista'] -> get($posicaoEdicao) -> getTomadasTipo();
-				for($positionSearch = 0; $positionSearch < $insereArray -> size(); $positionSearch += 1)
-					$_SESSION['valoresPreviosTipoTomada'][$positionSearch] = $insereArray -> get($positionSearch);
-
-				$insereArray = $_SESSION['VetorLista'] -> get($posicaoEdicao) -> getQuantidadeTomadasTipo();
-				for($positionSearch = 0; $positionSearch < $insereArray -> size(); $positionSearch += 1)
-					$_SESSION['valoresPreviosQuantidadeTomada'][$positionSearch] = $insereArray -> get($positionSearch);
-				
-				$controlePosicao = $insereArray -> size();
-				$_SESSION['adicionarTomada'] = $insereArray -> size();
-			}
-			else{
-				if(!isset($_SESSION['areaPrevia']))
-					$_SESSION['areaPrevia'] = "";
-
-				if(!isset($_SESSION['perimetroPrevio']))
-					$_SESSION['perimetroPrevio'] = "";
-
-				$controlePosicao = $_SESSION['adicionarTomada'];
-			}
-		}
-		
-		$_SESSION['paginaOrigem'] = "../view/edicao.php";
-	?>
-
-	<form style=" max-width: 810px; padding: 10px; margin: 0 auto;" method = "post" action = "../controller/controlador.php">
-		<div class="row">
-			<div>
+?>
+<div class = "container">
+	<div class="row">
+		<div class="col-md-1"></div>
+		<div class="col-md-10">
+			<form method = "post" action="../controller/gerenciaControle.php">
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						<h3 class="panel-title">
@@ -99,71 +32,68 @@
 					<div class="panel-body">
 						Identificação do cômodo:<select name="comodosId">
 							<option value="Banheiro"
-							<?= ($_SESSION['previoIdComodo'] == "Banheiro") ? "selected" : "" ?> > Banheiro </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Banheiro") ? "selected" : "" ?> > Banheiro </option>
 							<option value="Cozinha"
-							<?= ($_SESSION['previoIdComodo'] == "Cozinha") ? "selected" : "" ?> > Cozinha </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Cozinha") ? "selected" : "" ?> > Cozinha </option>
 							<option value="Copa"
-							<?= ($_SESSION['previoIdComodo'] == "Copa") ? "selected" : "" ?> > Copa </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Copa") ? "selected" : "" ?> > Copa </option>
 							<option value="Copa-Cozinha"
-							<?= ($_SESSION['previoIdComodo'] == "Copa-Cozinha") ? "selected" : "" ?> > Copa-Cozinha </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Copa-Cozinha") ? "selected" : "" ?> > Copa-Cozinha </option>
 							<option value="Area de Servico"
-							<?= ($_SESSION['previoIdComodo'] == "Area de Servico") ? "selected" : "" ?> > Área de servico </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Area de Servico") ? "selected" : "" ?> > Área de servico </option>
 							<option value="Cozinha-area de servico"
-							<?= ($_SESSION['previoIdComodo'] == "Cozinha-area de servico") ? "selected" : "" ?> > Cozinha-área de servico </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Cozinha-area de servico") ? "selected" : "" ?> > Cozinha-área de servico </option>
 							<option value="Lavanderia"
-							<?= ($_SESSION['previoIdComodo'] == "Lavanderia") ? "selected" : "" ?> > Lavanderia </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Lavanderia") ? "selected" : "" ?> > Lavanderia </option>
 							<option value="Sala"
-							<?= ($_SESSION['previoIdComodo'] == "Sala") ? "selected" : "" ?> > Sala </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Sala") ? "selected" : "" ?> > Sala </option>
 							<option value="Dormitorio"
-							<?= ($_SESSION['previoIdComodo'] == "Dormitorio") ? "selected" : "" ?> > Dormitorio </option>
+							<?= ($_SESSION['InserindoComodo'] -> getIdComodo() == "Dormitorio") ? "selected" : "" ?> > Dormitorio </option>
 						</select>
 
-						<tab>Área:</tab><input type="number" name="area" min="1" max="9999" value = "<?= $_SESSION['areaPrevia'] ?>">
+						<tab>Área:</tab><input type="number" name="area" min="1" max="9999" value = "<?= $_SESSION['InserindoComodo'] -> getArea() ?>">
 
-						<tab>Perímetro:</tab><input type="number" name="perimetro" min="1" max="9999" value = "<?= $_SESSION['perimetroPrevio'] ?>">
+						<tab>Perímetro:</tab><input type="number" name="perimetro" min="1" max="9999" value = "<?= $_SESSION['InserindoComodo'] -> getPerimetro() ?>">
 						
+						<tab><input type="submit" name="acaoRealizada" value="Nova Tomada"></tab>
 
-						<?php for ($position = 0; $position < $controlePosicao; $position += 1): ?>
+						<?php for ($position = 0; $position < $quantidadeTomadas; $position += 1): ?>
+							<?php $valoresPreviosTipoTomada = $_SESSION['InserindoComodo'] -> getTomadasTipo(); ?>
+							<?php $valoresPreviosQuantidadeTomada = $_SESSION['InserindoComodo'] -> getQuantidadeTomadasTipo(); ?>
 							<br/>Tomada de uso específico:<select name="tomadas[]">
 								<option value="Ferro de Passar"
-								<?= ($_SESSION['valoresPreviosTipoTomada'][$position] == "Ferro de Passar") ? "selected" : "" ?> > Ferro de Passar </option>
+								<?= ($valoresPreviosTipoTomada -> get($position) == "Ferro de Passar") ? "selected" : "" ?> > Ferro de Passar </option>
 								<option value="Chuveiro"
-								<?= ($_SESSION['valoresPreviosTipoTomada'][$position] == "Chuveiro") ? "selected" : "" ?> > Chuveiro </option>
+								<?= ($valoresPreviosTipoTomada -> get($position) == "Chuveiro") ? "selected" : "" ?> > Chuveiro </option>
 								<option value="Maquina de Lavar"
-								<?= ($_SESSION['valoresPreviosTipoTomada'][$position] == "Maquina de Lavar") ? "selected" : "" ?> > Máquina de Lavar </option>
+								<?= ($valoresPreviosTipoTomada -> get($position) == "Maquina de Lavar") ? "selected" : "" ?> > Máquina de Lavar </option>
 								<option value="Microondas"
-								<?= ($_SESSION['valoresPreviosTipoTomada'][$position] == "Microondas") ? "selected" : "" ?> > Micro-Ondas </option>
+								<?= ($valoresPreviosTipoTomada -> get($position) == "Microondas") ? "selected" : "" ?> > Micro-Ondas </option>
 								<option value="Ar condicionado"
-								<?= ($_SESSION['valoresPreviosTipoTomada'][$position] == "Ar condicionado") ? "selected" : "" ?> > Ar condicionados </option>
+								<?= ($valoresPreviosTipoTomada -> get($position) == "Ar condicionado") ? "selected" : "" ?> > Ar condicionados </option>
 							</select>
 
 							<tab>Quantidade:<input type="number" min="1" max="270" name="quantidade[]"
-							 value="<?= $_SESSION['valoresPreviosQuantidadeTomada'][$position] ?>" required/></tab>
+							 value="<?= $valoresPreviosQuantidadeTomada -> get($position) ?>" required/></tab>
 
-							<button style="float: left;" class="close" aria-label="Close" type="submit" name="acaoRealizada" value="<?= 'remove_'.$position ?>">
+							<button style="float: left;" type="submit" class="close" aria-label="Close" name="acaoRealizada" value="<?= 'remove_'.$position ?>">
 								<span aria-hidden="true">&times;</span>
 							</button>
-
 						<?php endfor ?>
-						
 
-						<tab><input type="submit" name="acaoRealizada" value="Nova Tomada"></tab>
+						<br/><input type="submit" name="acaoRealizada" value="Concluir"><br/>
 
-						<br/><input type="submit" name="acaoRealizada" value="Concluir" size="7">
-						
 					</div><!-- fecha div panel-body -->
 				</div>
-			</div><!-- /.col-sm-6 -->
-		</div>
-
-		<?php
-			if(isset($_SESSION['mensagemErro'])){
-				echo "<br/><div class='alert alert-danger' role='alert'>".$_SESSION['mensagemErro']."</div>";
-				unset($_SESSION['mensagemErro']);
-			}
-		?>
-	</form>
-	
-	
-</body>
-</html>
+				
+			</form>
+			<?php
+				if(isset($_SESSION['mensagemErro']['edicao.php'])){
+					echo "<div class='alert alert-danger' role='alert'>".$_SESSION['mensagemErro']['edicao.php']."</div>";
+					unset($_SESSION['mensagemErro']['edicao.php']);
+				}
+			?>
+		</div>	<!-- fecha md-10 -->
+		<div class="col-md-1"></div>
+	</div>	<!-- fecha row -->
+</div>	<!-- fecha container -->
